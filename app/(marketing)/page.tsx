@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
 import Link from "next/link";
-import { HeroVisual } from "@/components/features/landing/hero-visual";
+import { WindHeroSection } from "@/components/features/landing/wind-hero-section";
 import { MagneticButton } from "@/components/features/landing/magnetic-button";
 import { CustomCursor } from "@/components/features/landing/custom-cursor";
 import { AnimatedCounter } from "@/components/features/landing/animated-counter";
@@ -15,7 +15,6 @@ import {
   Zap,
   GraduationCap,
   FileCheck,
-  CheckCircle2,
   Atom,
 } from "lucide-react";
 
@@ -41,84 +40,16 @@ export default function LandingPage() {
       </Suspense>
 
       {/* -------------------------------------------------------------------- */}
-      {/* HERO SECTION                                                         */}
+      {/* WIND HERO SECTION (CLONED FROM SPLINE DESIGN)                         */}
       {/* -------------------------------------------------------------------- */}
-      <section
-        id="hero"
-        aria-label="Hero"
-        className="relative min-h-[92vh] flex flex-col items-center justify-center px-6 pt-16 pb-20 text-center sm:px-8 overflow-hidden"
-      >
-        {/* React Bits Animated Background / Optional Spline Slot */}
-        <HeroVisual />
+      <WindHeroSection />
 
-        <div className="relative z-10 mx-auto max-w-5xl">
-          {/* Status Release Pill */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-1.5 shadow-[0_0_20px_rgba(0,245,212,0.18)]">
-            <Sparkles className="size-3.5 text-cyan-300" />
-            <span className="text-xs font-medium text-cyan-200">
-              The AI Learning Companion for High School &amp; College
-            </span>
-            <span className="size-1.5 rounded-full bg-cyan-400 animate-pulse" />
-          </div>
-
-          {/* Master Headline with Confident Display Typography */}
-          <h1 className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-[1.06] select-none">
-            The AI Learning Companion That{" "}
-            <span className="text-gradient-nova block sm:inline">
-              Understands How You Study.
-            </span>
-          </h1>
-
-          {/* Subtitle */}
-          <p className="mt-6 mx-auto max-w-2xl text-base sm:text-lg md:text-xl text-slate-300 leading-relaxed font-normal">
-            Nova adapts to your comprehension speed with Socratic tutoring, citation-grounded notes vault, adaptive quizzes, and automated spaced repetition.
-          </p>
-
-          {/* Magnetic CTA Action Buttons */}
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
-            <Link href="/signup">
-              <MagneticButton
-                id="hero-signup-cta"
-                className="group w-full sm:w-auto h-13 rounded-2xl bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 px-8 py-3.5 text-sm font-semibold text-[#030914] shadow-[0_0_35px_rgba(0,245,212,0.35)] transition-all duration-300 hover:shadow-[0_0_45px_rgba(0,245,212,0.6)]"
-              >
-                <div className="flex items-center gap-2">
-                  <Sparkles className="size-4 transition-transform group-hover:rotate-12" />
-                  <span>Start Learning Free</span>
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-                </div>
-              </MagneticButton>
-            </Link>
-
-            <Link href="/login">
-              <MagneticButton
-                id="hero-login-cta"
-                className="w-full sm:w-auto h-13 rounded-2xl border border-white/15 bg-white/[0.04] px-8 py-3.5 text-sm font-medium text-slate-200 hover:bg-white/[0.08] hover:text-white backdrop-blur-md transition-colors"
-              >
-                <span>Sign In to Workspace</span>
-              </MagneticButton>
-            </Link>
-          </div>
-
-          {/* Trust Guarantees */}
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400">
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="size-3.5 text-cyan-400" />
-              <span>Grounded in Your Course Notes</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="size-3.5 text-cyan-400" />
-              <span>SM-2 Algorithmic Spaced Recall</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="size-3.5 text-cyan-400" />
-              <span>Zero Hallucinations Guarantee</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Animated Metrics Counters Strip */}
-        <div className="relative z-10 mt-16 w-full max-w-5xl rounded-3xl border border-white/10 bg-[#070914]/80 p-6 sm:p-8 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      {/* -------------------------------------------------------------------- */}
+      {/* SOCIAL PROOF & METRICS COUNTER BAR                                   */}
+      {/* -------------------------------------------------------------------- */}
+      <section className="relative z-10 border-b border-white/[0.08] bg-[#070914] px-6 py-8">
+        <div className="mx-auto max-w-5xl">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
             <div className="border-r border-white/[0.08] last:border-none pr-4">
               <p className="font-display text-3xl sm:text-4xl font-bold text-cyan-300">
                 <AnimatedCounter value={99.4} suffix="%" decimals={1} />
