@@ -179,7 +179,7 @@ nova/
 | **Phase 1** | Foundation: design system tokens, fonts, grain, Lenis+GSAP, layout shell, Supabase auth, protected routes, login/signup | **Done** |
 | **Phase 2** | Landing Page: React Bits hero background, GSAP ScrollTrigger storytelling, bento grid, marquee, responsive & reduced-motion pass | **Done** |
 | **Phase 3** | Data & AI Core: Supabase migrations, RLS, Gemini provider abstraction, streaming tutor chat with modes | **Done** |
-| **Phase 4** | Notes Vault & RAG: upload, parsing, embeddings, cited Q&A | **Next** |
-| **Phase 5** | Quiz Engine & Flashcards: adaptive generator, SM-2 algorithm, review queue | Planned |
+| **Phase 4** | Notes Vault & RAG: upload, parsing, embeddings, cited Q&A | **Done** |
+| **Phase 5** | Quiz Engine & Flashcards: adaptive generator, SM-2 algorithm, review queue | **Next** |
 | **Phase 6** | Planner, Focus Mode, Learning DNA, Dashboard metrics | Planned |
 | **Phase 7** | Hardening: Vitest/Playwright tests, rate limits, a11y audit, Lighthouse optimization | Planned |

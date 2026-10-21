@@ -59,6 +59,20 @@ describe("Database RLS Migrations & Policy Structure", () => {
     expect(rlsContent).toContain("SECURITY INVOKER");
     expect(rlsContent).toContain("c.user_id = p_user_id");
   });
+
+  it("validates 0004_storage_and_search.sql bucket configuration, storage RLS, and hybrid search", () => {
+    const storageMigrationPath = path.join(migrationsDir, "0004_storage_and_search.sql");
+    const storageContent = fs.readFileSync(storageMigrationPath, "utf-8");
+
+    expect(storageContent).toContain("'notes'");
+    expect(storageContent).toContain("20971520");
+    expect(storageContent).toContain("notes_storage_insert_own");
+    expect(storageContent).toContain("notes_storage_select_own");
+    expect(storageContent).toContain("notes_storage_delete_own");
+    expect(storageContent).toContain("(storage.foldername(name))[1] = auth.uid()::text");
+    expect(storageContent).toContain("match_chunks_hybrid");
+    expect(storageContent).toContain("SECURITY INVOKER");
+  });
 });
 
 describe("Multi-Tenant RLS Data Isolation Simulation", () => {
