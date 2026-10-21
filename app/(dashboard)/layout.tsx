@@ -8,14 +8,25 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#05060b] text-foreground">
+    <div
+      data-lenis-prevent="true"
+      className="flex h-screen w-full overflow-hidden bg-[#05060b] text-foreground"
+    >
       {/* Animated Collapsible Sidebar */}
       <AppSidebar />
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+      <div
+        data-lenis-prevent="true"
+        className="flex flex-1 flex-col min-w-0 overflow-hidden"
+      >
         <AppHeader />
-        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-6 md:p-8 relative outline-none">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          data-lenis-prevent="true"
+          className="flex-1 overflow-y-auto overscroll-contain p-6 md:p-8 relative outline-none"
+        >
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>
       </div>

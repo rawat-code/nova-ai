@@ -129,6 +129,11 @@
   }
 }
 
+/* Ensure nested scrolling containers respect mousewheel and trackpad inertia */
+[data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Premium Glassmorphic & Cinematic Utilities                                  */
 /* -------------------------------------------------------------------------- */

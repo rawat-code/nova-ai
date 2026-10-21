@@ -56,6 +56,7 @@ export function AppSidebar() {
 
   return (
     <aside
+      data-lenis-prevent="true"
       className={cn(
         "relative flex flex-col border-r border-white/[0.08] bg-[#070914]/90 backdrop-blur-2xl transition-all duration-300 ease-in-out z-30 select-none",
         isCollapsed ? "w-20" : "w-64"

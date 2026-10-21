@@ -178,7 +178,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="space-y-6 pb-20">
+    <div data-lenis-prevent="true" className="space-y-6 pb-20">
       {/* Page Header with Save CTA */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
         <div>
@@ -230,7 +230,10 @@ export default function SettingsPage() {
       </div>
 
       {/* Settings Navigation Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-white/[0.06] scrollbar-none">
+      <div
+        data-lenis-prevent="true"
+        className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-white/[0.06] scrollbar-none"
+      >
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

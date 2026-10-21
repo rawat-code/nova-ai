@@ -38,11 +38,16 @@ export function useSmoothScroll() {
   return useContext(SmoothScrollContext);
 }
 
+import { usePathname } from "next/navigation";
+
 interface SmoothScrollProviderProps {
   children: ReactNode;
 }
 
 export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
+  const pathname = usePathname();
+  const isLandingPage = pathname === "/";
+
   const [isReducedMotion, setIsReducedMotion] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -60,17 +65,22 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
 
     mediaQuery.addEventListener("change", handleMotionChange);
 
-    // Bypass Lenis when reduced motion is preferred
-    if (mediaQuery.matches) {
+    // Completely bypass Lenis on dashboard, auth, and inner app routes, or when reduced motion is preferred.
+    // Lenis is only intended for the cinematic storytelling landing page (/).
+    if (!isLandingPage || mediaQuery.matches) {
+      if (lenisRef.current) {
+        lenisRef.current.destroy();
+        lenisRef.current = null;
+      }
       return () => {
         mediaQuery.removeEventListener("change", handleMotionChange);
       };
     }
 
-    // Register GSAP ScrollTrigger
+    // Register GSAP ScrollTrigger for landing page
     gsap.registerPlugin(ScrollTrigger);
 
-    // Initialize Lenis
+    // Initialize Lenis strictly on landing page with nested scroll protection
     const lenis = new Lenis({
       duration: 1.15,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -79,6 +89,15 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       smoothWheel: true,
       wheelMultiplier: 0.9,
       touchMultiplier: 1.5,
+      prevent: (node) => {
+        if (!node || !(node instanceof HTMLElement)) return false;
+        return (
+          node.hasAttribute("data-lenis-prevent") ||
+          node.closest("[data-lenis-prevent]") !== null ||
+          node.closest("main") !== null ||
+          node.closest("[role='dialog']") !== null
+        );
+      },
     });
 
     lenisRef.current = lenis;
@@ -102,7 +121,7 @@ export function SmoothScrollProvider({ children }: SmoothScrollProviderProps) {
       lenis.destroy();
       lenisRef.current = null;
     };
-  }, []);
+  }, [isLandingPage]);
 
   const scrollTo = useCallback(
     (
