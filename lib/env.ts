@@ -146,3 +146,12 @@ export const serverEnv: ServerEnv = new Proxy({} as ServerEnv, {
     return env[prop as keyof ServerEnv];
   },
 });
+
+export function getServerEnv(): ServerEnv {
+  return parseServerEnv();
+}
+
+export function getClientEnv(): ClientEnv {
+  return parseClientEnv();
+}
+
