@@ -64,14 +64,54 @@ export function HeroVisual() {
   useEffect(() => {
     if (!isValidSpline || !splineUrl) return;
 
-    import("@splinetool/react-spline")
-      .then((mod) => {
-        setSplineComponent(() => mod.default);
-        setHasSpline(true);
+    let isMounted = true;
+
+    // Safety net: catch async unpacking errors from @splinetool/runtime
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason?.message || String(event.reason || "");
+      if (reason.includes("buffer not reached") || reason.includes("spline") || reason.includes("Spline")) {
+        console.warn("[HeroVisual] Caught async Spline decoding error, falling back to Aurora canvas:", reason);
+        event.preventDefault();
+        if (isMounted) {
+          setHasSpline(false);
+          setSplineComponent(null);
+        }
+      }
+    };
+
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+
+    // Preflight check the scene URL to confirm it returns HTTP 200 and binary data (not 403/404 XML or HTML)
+    fetch(splineUrl, { method: "HEAD" })
+      .then((res) => {
+        if (!res.ok) {
+          console.warn(`[HeroVisual] Spline URL returned HTTP ${res.status}, falling back to Aurora canvas.`);
+          return null;
+        }
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("xml") || contentType.includes("html") || contentType.includes("text")) {
+          console.warn(`[HeroVisual] Spline URL returned non-binary content-type (${contentType}), falling back to Aurora canvas.`);
+          return null;
+        }
+        return import("@splinetool/react-spline");
       })
-      .catch(() => {
-        setHasSpline(false);
+      .then((mod) => {
+        if (mod && isMounted) {
+          setSplineComponent(() => mod.default);
+          setHasSpline(true);
+        }
+      })
+      .catch((err) => {
+        console.warn("[HeroVisual] Spline preflight/import failed, falling back to Aurora canvas:", err);
+        if (isMounted) {
+          setHasSpline(false);
+        }
       });
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+    };
   }, [isValidSpline, splineUrl]);
 
   if (hasSpline && SplineComponent && splineUrl && isValidSpline) {
