@@ -40,7 +40,7 @@ const serverSchema = z.object({
   GEMINI_EMBEDDING_MODEL: z
     .string()
     .min(1)
-    .default("text-embedding-004"),
+    .default("gemini-embedding-001"),
   UPSTASH_REDIS_REST_URL: z
     .string()
     .url("UPSTASH_REDIS_REST_URL must be a valid URL if provided")

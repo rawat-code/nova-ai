@@ -64,14 +64,23 @@ export function extractJsonFromResponse(raw: string): string {
   // If wrapped in markdown code fence
   if (cleaned.startsWith("```")) {
     cleaned = cleaned.replace(/^```(?:json)?\s*/i, "");
-    cleaned = cleaned.replace(/\s*```$/, "");
+    cleaned = cleaned.replace(/\s*```$/, "").trim();
   }
 
-  // Find the first { or [ and last } or ]
+  const firstBracket = cleaned.indexOf("[");
+  const lastBracket = cleaned.lastIndexOf("]");
   const firstBrace = cleaned.indexOf("{");
   const lastBrace = cleaned.lastIndexOf("}");
 
-  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+  // Check if an array comes first or object comes first
+  const hasArray = firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket;
+  const hasObject = firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace;
+
+  if (hasArray && (!hasObject || firstBracket < firstBrace)) {
+    return cleaned.slice(firstBracket, lastBracket + 1);
+  }
+
+  if (hasObject) {
     return cleaned.slice(firstBrace, lastBrace + 1);
   }
 

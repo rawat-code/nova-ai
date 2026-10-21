@@ -8,6 +8,7 @@ import {
   Plus,
   Layers,
   Loader2,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FlashcardItem } from "./flashcard-deck";
@@ -175,9 +176,17 @@ export function FlashcardList({
             >
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="rounded-md border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-[10px] font-semibold text-purple-300">
-                    {card.topic}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="rounded-md border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-[10px] font-semibold text-purple-300">
+                      {card.topic}
+                    </span>
+                    {card.document_id && (
+                      <span className="flex items-center gap-1 rounded-md border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.5 text-[9px] font-medium text-cyan-300">
+                        <FileText className="size-2.5" />
+                        Vault Note
+                      </span>
+                    )}
+                  </div>
                   <button
                     onClick={() => onDeleteCard(card.id)}
                     className="p-1 text-slate-500 transition-colors hover:text-rose-400"

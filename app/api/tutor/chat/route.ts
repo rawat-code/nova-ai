@@ -130,13 +130,35 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Build Dynamic System Prompt with Pedagogical Guardrails
-    const systemInstruction = buildSystemInstruction(mode as TutorMode, {
+    let systemInstruction = buildSystemInstruction(mode as TutorMode, {
       studentName,
       gradeLevel,
       learningStyle,
       topic,
       citedNotes,
     });
+
+    // 5b. Inject Student Learning DNA if available
+    if (supabase && userId !== "anonymous-dev-user") {
+      try {
+        const { data: insights } = await supabase
+          .from("learning_insights")
+          .select("struggling_topics, topic_mastery")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (insights && (insights.struggling_topics?.length > 0 || Object.keys(insights.topic_mastery || {}).length > 0)) {
+          let dnaSnippet = "\n\n[STUDENT LEARNING DNA]";
+          if (insights.struggling_topics && insights.struggling_topics.length > 0) {
+            dnaSnippet += `\n- Student is currently working through conceptual gaps in: ${insights.struggling_topics.slice(0, 3).join(", ")}.`;
+          }
+          dnaSnippet += "\nInstruction: Reinforce these foundational principles patiently and proactively when relevant.";
+          systemInstruction += dnaSnippet;
+        }
+      } catch {
+        // Non-blocking DNA injection
+      }
+    }
 
     // 6. Request Stream from AI Provider
     const aiProvider = getAIProvider();

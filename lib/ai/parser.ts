@@ -37,58 +37,28 @@ export function cleanExtractedText(raw: string): string {
  */
 export async function parsePdf(buffer: Buffer): Promise<ParsedPage[]> {
   try {
-    // Dynamic import to support various runtime bundlers
-    const pdfModule = await import("pdf-parse");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdf = (typeof pdfModule === "function" ? pdfModule : (pdfModule as any).default || pdfModule) as (
-      docBuffer: Buffer,
-      options?: Record<string, unknown>
-    ) => Promise<{ text: string }>;
+    const { PDFParse } = await import("pdf-parse");
+    const parser = new PDFParse({ data: buffer });
+    const textResult = await parser.getText();
+    await parser.destroy();
 
     const pages: ParsedPage[] = [];
-    let currentPage = 1;
 
-    // Use custom pagerender to extract per-page text
-    const options = {
-      pagerender: async function (pageData: {
-        getTextContent: (options: { normalizeWhitespace: boolean; disableCombineTextItems: boolean }) => Promise<{
-          items: Array<{ str: string; transform: number[] }>;
-        }>;
-      }) {
-        const textContent = await pageData.getTextContent({
-          normalizeWhitespace: true,
-          disableCombineTextItems: false,
-        });
-
-        let pageText = "";
-        let lastY: number | null = null;
-
-        for (const item of textContent.items) {
-          if (lastY === item.transform[5] || lastY === null) {
-            pageText += item.str + " ";
-          } else {
-            pageText += "\n" + item.str + " ";
-          }
-          lastY = item.transform[5];
-        }
-
-        const cleaned = cleanExtractedText(pageText);
+    if (textResult.pages && textResult.pages.length > 0) {
+      for (const p of textResult.pages) {
+        const cleaned = cleanExtractedText(p.text);
         if (cleaned.length > 0) {
           pages.push({
-            pageNumber: currentPage,
+            pageNumber: p.num || pages.length + 1,
             text: cleaned,
           });
         }
-        currentPage++;
-        return pageText;
-      },
-    };
+      }
+    }
 
-    const data = await pdf(buffer, options);
-
-    // Fallback: if pagerender didn't populate pages, split full text by form feeds \f or paragraphs
-    if (pages.length === 0 && data.text) {
-      const formFeedSplits = data.text.split("\f");
+    // Fallback: if pages array is empty but textResult.text has content
+    if (pages.length === 0 && textResult.text) {
+      const formFeedSplits = textResult.text.split("\f");
       if (formFeedSplits.length > 1) {
         formFeedSplits.forEach((pageContent: string, idx: number) => {
           const cleaned = cleanExtractedText(pageContent);
@@ -97,7 +67,10 @@ export async function parsePdf(buffer: Buffer): Promise<ParsedPage[]> {
           }
         });
       } else {
-        pages.push({ pageNumber: 1, text: cleanExtractedText(data.text) });
+        const cleaned = cleanExtractedText(textResult.text);
+        if (cleaned.length > 0) {
+          pages.push({ pageNumber: 1, text: cleaned });
+        }
       }
     }
 

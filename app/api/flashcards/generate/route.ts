@@ -4,8 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { generateFlashcardsWithRetry } from "@/lib/ai/flashcard-generator";
 
 const generateDeckSchema = z.object({
-  topic: z.string().min(2, "Topic is required"),
-  documentId: z.string().uuid().optional(),
+  documentId: z.string().uuid("A valid document ID is required"),
+  topic: z.string().optional(),
   count: z.number().int().min(1).max(20).default(6),
 });
 
@@ -31,43 +31,81 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { topic, documentId, count } = parsed.data;
+    const { documentId, topic, count } = parsed.data;
 
-    let sourceText = "";
-    if (documentId) {
-      const { data: chunks } = await supabase
-        .from("chunks")
-        .select("content")
-        .eq("document_id", documentId)
-        .eq("user_id", user.id)
-        .order("chunk_index", { ascending: true })
-        .limit(10);
+    // 1. Fetch document metadata scoped to current user
+    const { data: document, error: docError } = await supabase
+      .from("documents")
+      .select("id, title, status")
+      .eq("id", documentId)
+      .eq("user_id", user.id)
+      .single();
 
-      if (chunks && chunks.length > 0) {
-        sourceText = chunks.map((c) => c.content).join("\n\n");
-      }
+    if (docError || !document) {
+      return NextResponse.json(
+        { error: "Selected document not found or you do not have permission to access it." },
+        { status: 404 }
+      );
     }
 
+    // 2. Fetch document chunks strictly scoped to current user
+    const { data: chunks, error: chunkError } = await supabase
+      .from("chunks")
+      .select("id, document_id, content, page_number, chunk_index")
+      .eq("document_id", documentId)
+      .eq("user_id", user.id)
+      .order("chunk_index", { ascending: true })
+      .limit(20);
+
+    if (chunkError) {
+      return NextResponse.json(
+        { error: `Database error retrieving document chunks: ${chunkError.message}` },
+        { status: 500 }
+      );
+    }
+
+    if (!chunks || chunks.length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "No indexed text chunks found for this document. Please ensure the document is uploaded and vectorized in your Notes Vault.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 3. Generate flashcards strictly from the document chunks
     const generated = await generateFlashcardsWithRetry({
-      topic,
-      sourceText,
+      documentTitle: document.title,
+      chunks: chunks.map((c) => ({
+        content: c.content,
+        pageNumber: c.page_number,
+        chunkIndex: c.chunk_index,
+      })),
       cardCount: count,
       signal: req.signal,
     });
 
     const today = new Date().toISOString().split("T")[0];
+    const deckTopic = topic?.trim() || document.title;
 
-    const cardRows = generated.map((card) => ({
-      user_id: user.id,
-      document_id: documentId || null,
-      front: card.front,
-      back: card.back,
-      topic: card.topic || topic,
-      repetition: 0,
-      interval_days: 1,
-      ease_factor: 2.5,
-      next_review_at: today,
-    }));
+    // 4. Save cards with document_id and source page citations
+    const cardRows = generated.map((card) => {
+      const pageInfo = card.sourcePage ? ` (Page ${card.sourcePage})` : "";
+      const backWithSource = `${card.back}\n\n> 📄 *Source: ${document.title}${pageInfo}*`;
+
+      return {
+        user_id: user.id,
+        document_id: document.id,
+        front: card.front,
+        back: backWithSource,
+        topic: deckTopic,
+        repetition: 0,
+        interval_days: 1,
+        ease_factor: 2.5,
+        next_review_at: today,
+      };
+    });
 
     const { data: inserted, error: insertError } = await supabase
       .from("flashcards")

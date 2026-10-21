@@ -19,6 +19,9 @@ const ALLOWED_MIME_TYPES = new Set([
 const ALLOWED_EXTENSIONS = new Set(["pdf", "docx", "txt", "md", "png", "jpg", "jpeg", "webp"]);
 
 export async function POST(req: NextRequest) {
+  let createdDocId: string | null = null;
+  let createdStoragePath: string | null = null;
+
   try {
     const supabase = await createClient();
     const {
@@ -63,8 +66,10 @@ export async function POST(req: NextRequest) {
     const fileBytes = await file.arrayBuffer();
     const fileBuffer = Buffer.from(fileBytes);
     const documentId = crypto.randomUUID();
+    createdDocId = documentId;
     const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const storagePath = `${user.id}/${documentId}/${sanitizedFileName}`;
+    createdStoragePath = storagePath;
 
     // 3. Upload to private Supabase Storage bucket 'notes'
     try {
@@ -116,10 +121,17 @@ export async function POST(req: NextRequest) {
     });
 
     if (!ingestionResult.success) {
+      // Clean up storage file and delete broken document row so no empty orphan rows remain
+      try {
+        await supabase.storage.from("notes").remove([storagePath]);
+        await supabase.from("documents").delete().eq("id", documentId).eq("user_id", user.id);
+      } catch (cleanupErr) {
+        console.warn("Cleanup error for failed ingestion:", cleanupErr);
+      }
+
       return NextResponse.json(
         {
           error: `Document processing failed: ${ingestionResult.error}`,
-          document: { ...documentRow, status: "failed" },
         },
         { status: 422 }
       );
@@ -139,6 +151,17 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (err) {
+    if (createdDocId) {
+      try {
+        const supabase = await createClient();
+        if (createdStoragePath) {
+          await supabase.storage.from("notes").remove([createdStoragePath]);
+        }
+        await supabase.from("documents").delete().eq("id", createdDocId);
+      } catch {
+        // Ignore fallback cleanup errors
+      }
+    }
     const message = err instanceof Error ? err.message : "Internal server error during upload";
     return NextResponse.json({ error: message }, { status: 500 });
   }

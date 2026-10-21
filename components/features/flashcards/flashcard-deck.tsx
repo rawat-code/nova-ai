@@ -5,6 +5,7 @@ import {
   RotateCcw,
   Trophy,
   Flame,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MessageContent } from "../tutor/message-content";
@@ -19,6 +20,7 @@ export interface FlashcardItem {
   interval_days: number;
   ease_factor: number;
   next_review_at: string;
+  document_id?: string | null;
 }
 
 interface FlashcardDeckProps {
@@ -136,9 +138,17 @@ export function FlashcardDeck({
       >
         {/* Card Header */}
         <div className="flex items-center justify-between">
-          <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-[11px] font-semibold text-purple-300">
-            {currentCard.topic}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-0.5 text-[11px] font-semibold text-purple-300">
+              {currentCard.topic}
+            </span>
+            {currentCard.document_id && (
+              <span className="flex items-center gap-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-0.5 text-[10px] font-medium text-cyan-300">
+                <FileText className="size-3" />
+                Vault Note
+              </span>
+            )}
+          </div>
 
           <span className="text-xs text-slate-500">
             {isFlipped ? "Answer" : "Prompt"} · Click or Space to flip

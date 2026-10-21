@@ -40,12 +40,12 @@ export class GeminiProvider implements AIProvider {
     if (config?.apiKey) {
       this.apiKey = config.apiKey;
       this.chatModel = config.chatModel || "gemini-2.5-flash";
-      this.embeddingModel = config.embeddingModel || "text-embedding-004";
+      this.embeddingModel = config.embeddingModel || "gemini-embedding-001";
     } else {
       const env = getServerEnv();
       this.apiKey = env.GEMINI_API_KEY;
       this.chatModel = env.GEMINI_CHAT_MODEL || "gemini-2.5-flash";
-      this.embeddingModel = env.GEMINI_EMBEDDING_MODEL || "text-embedding-004";
+      this.embeddingModel = env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001";
     }
   }
 
@@ -198,7 +198,10 @@ export class GeminiProvider implements AIProvider {
       return this.mockEmbedding(text);
     }
 
-    const endpoint = `${this.baseUrl}/models/${encodeURIComponent(this.embeddingModel)}:embedContent?key=${this.apiKey}`;
+    const modelPath = this.embeddingModel.startsWith("models/")
+      ? this.embeddingModel
+      : `models/${this.embeddingModel}`;
+    const endpoint = `${this.baseUrl}/${modelPath}:embedContent?key=${this.apiKey}`;
 
     const response = await fetch(endpoint, {
       method: "POST",
@@ -207,6 +210,7 @@ export class GeminiProvider implements AIProvider {
         content: {
           parts: [{ text }],
         },
+        outputDimensionality: 768,
       }),
     });
 
@@ -216,10 +220,14 @@ export class GeminiProvider implements AIProvider {
     }
 
     const data = await response.json();
-    const values = data?.embedding?.values;
+    let values = data?.embedding?.values;
 
     if (!Array.isArray(values) || values.length === 0) {
       throw new Error("Invalid or empty embedding values received from Gemini");
+    }
+
+    if (values.length > 768) {
+      values = values.slice(0, 768);
     }
 
     return values;
