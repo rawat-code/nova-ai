@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { HeroVisual } from "@/components/features/landing/hero-visual";
 import { MagneticButton } from "@/components/features/landing/magnetic-button";
@@ -36,7 +36,9 @@ export default function LandingPage() {
   return (
     <div className="relative min-h-screen bg-[#05060b] text-foreground selection:bg-cyan-500/20 selection:text-cyan-300">
       {/* Interactive Custom Cursor on Desktop */}
-      <CustomCursor />
+      <Suspense fallback={null}>
+        <CustomCursor />
+      </Suspense>
 
       {/* -------------------------------------------------------------------- */}
       {/* HERO SECTION                                                         */}
