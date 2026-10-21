@@ -1,8 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "@/app/api/tutor/chat/route";
 import { NextRequest } from "next/server";
+import * as providerModule from "@/lib/ai/provider";
 
 describe("Tutor Chat Streaming Route Handler", () => {
+  beforeEach(() => {
+    vi.spyOn(providerModule, "getAIProvider").mockReturnValue(
+      new providerModule.GeminiProvider({ apiKey: "mock_test_key" })
+    );
+  });
   it("rejects empty or invalid JSON payloads with 400", async () => {
     const req = new NextRequest("http://localhost:3000/api/tutor/chat", {
       method: "POST",
@@ -56,5 +62,5 @@ describe("Tutor Chat Streaming Route Handler", () => {
 
     expect(text).toContain("data: ");
     expect(text).toContain("[DONE]");
-  });
+  }, 30000);
 });

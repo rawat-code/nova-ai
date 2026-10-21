@@ -56,7 +56,8 @@ export function AppHeader() {
         {/* Notification Bell */}
         <button
           type="button"
-          className="relative rounded-xl border border-white/10 bg-white/[0.04] p-2 text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+          aria-label="View notifications"
+          className="relative rounded-xl border border-white/10 bg-white/[0.04] p-2 text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
           title="Notifications"
         >
           <Bell className="size-4" />

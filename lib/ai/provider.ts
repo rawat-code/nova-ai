@@ -39,12 +39,12 @@ export class GeminiProvider implements AIProvider {
   }) {
     if (config?.apiKey) {
       this.apiKey = config.apiKey;
-      this.chatModel = config.chatModel || "gemini-2.5-flash";
+      this.chatModel = config.chatModel || "gemini-3.5-flash-lite";
       this.embeddingModel = config.embeddingModel || "gemini-embedding-001";
     } else {
       const env = getServerEnv();
       this.apiKey = env.GEMINI_API_KEY;
-      this.chatModel = env.GEMINI_CHAT_MODEL || "gemini-2.5-flash";
+      this.chatModel = env.GEMINI_CHAT_MODEL || "gemini-3.5-flash-lite";
       this.embeddingModel = env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001";
     }
   }
@@ -56,6 +56,34 @@ export class GeminiProvider implements AIProvider {
       this.apiKey.startsWith("mock_") ||
       this.apiKey.includes("dummy")
     );
+  }
+
+  private getCandidateModels(): string[] {
+    const fallbacks = [
+      "gemini-3.5-flash-lite",
+      "gemini-3.5-flash",
+      "gemini-flash-lite-latest",
+      "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-2.5-flash",
+    ];
+    return Array.from(new Set([this.chatModel, ...fallbacks]));
+  }
+
+  private formatErrorMessage(status: number, errText: string): string {
+    try {
+      const parsed = JSON.parse(errText);
+      const msg = parsed?.error?.message;
+      if (msg) {
+        if (status === 429) {
+          return `Gemini API quota exceeded [HTTP 429]: ${msg}`;
+        }
+        return `Gemini API error [HTTP ${status}]: ${msg}`;
+      }
+    } catch {
+      // ignore
+    }
+    return `Gemini streamChat failed [HTTP ${status}]: ${errText || "No response received"}`;
   }
 
   /**
@@ -81,8 +109,6 @@ export class GeminiProvider implements AIProvider {
       return this.mockStreamChat(options);
     }
 
-    const endpoint = `${this.baseUrl}/models/${encodeURIComponent(this.chatModel)}:streamGenerateContent?alt=sse&key=${this.apiKey}`;
-
     const body: Record<string, unknown> = {
       contents: this.formatContents(messages),
       generationConfig: {
@@ -97,20 +123,51 @@ export class GeminiProvider implements AIProvider {
       };
     }
 
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal,
-    });
+    const candidateModels = this.getCandidateModels();
+    let response: Response | null = null;
+    let lastStatus = 0;
+    let lastErrorText = "";
 
-    if (!response.ok) {
-      const errText = await response.text().catch(() => "");
-      throw new Error(`Gemini streamChat failed [HTTP ${response.status}]: ${errText || response.statusText}`);
+    for (const model of candidateModels) {
+      if (signal?.aborted) {
+        throw new DOMException("Aborted", "AbortError");
+      }
+
+      const endpoint = `${this.baseUrl}/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse&key=${this.apiKey}`;
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          signal,
+        });
+
+        if (res.ok && res.body) {
+          response = res;
+          break;
+        }
+
+        lastStatus = res.status;
+        lastErrorText = await res.text().catch(() => "");
+        console.warn(`[GeminiProvider] Model "${model}" failed [HTTP ${res.status}]. Attempting fallback...`);
+
+        // If rate limited (429), server overloaded (503), model retired (404), or transient 500, try next model
+        if (res.status === 429 || res.status === 503 || res.status === 404 || res.status === 500) {
+          continue;
+        } else {
+          // Client syntax/auth errors (e.g. 400 Bad Request, 401 Invalid Key) won't work on other models
+          break;
+        }
+      } catch (err) {
+        if (signal?.aborted) throw err;
+        console.warn(`[GeminiProvider] Fetch error for "${model}":`, err);
+        continue;
+      }
     }
 
-    if (!response.body) {
-      throw new Error("Gemini streamChat response missing readable stream body");
+    if (!response || !response.body) {
+      throw new Error(this.formatErrorMessage(lastStatus, lastErrorText));
     }
 
     const reader = response.body.getReader();

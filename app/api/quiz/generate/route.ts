@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { generateQuizWithRetry, type QuizDifficulty } from "@/lib/ai/quiz-generator";
+import { checkRateLimit } from "@/lib/ai/rate-limiter";
 
 const generateQuizRequestSchema = z.object({
   topic: z.string().min(2, "Topic must be at least 2 characters").max(100),
@@ -20,6 +21,25 @@ export async function POST(req: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rateLimit = await checkRateLimit(`quiz:${user.id}`, 20, 60);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          error: "Rate limit exceeded. Please wait a moment before generating another quiz.",
+          limit: rateLimit.limit,
+          reset: rateLimit.reset,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": Math.ceil((rateLimit.reset - Date.now()) / 1000).toString(),
+            "X-RateLimit-Limit": rateLimit.limit.toString(),
+            "X-RateLimit-Remaining": "0",
+          },
+        }
+      );
     }
 
     const body = await req.json();

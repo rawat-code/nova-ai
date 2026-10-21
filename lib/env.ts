@@ -36,7 +36,7 @@ const serverSchema = z.object({
   GEMINI_CHAT_MODEL: z
     .string()
     .min(1)
-    .default("gemini-2.5-flash"),
+    .default("gemini-3.5-flash-lite"),
   GEMINI_EMBEDDING_MODEL: z
     .string()
     .min(1)

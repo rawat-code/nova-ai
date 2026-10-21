@@ -174,9 +174,9 @@ export default function DashboardPage() {
               <ShieldCheck className="size-3.5" />
               <span>Cognitive Workspace Active</span>
             </div>
-            <h2 className="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight">
               Welcome back to your study sanctum.
-            </h2>
+            </h1>
             <p className="text-sm text-slate-300 max-w-xl">
               Track your learning velocity, daily cognitive streak, and personalized Learning DNA insights.
             </p>

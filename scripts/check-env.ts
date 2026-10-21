@@ -149,7 +149,7 @@ const envConfigs: EnvVarConfig[] = [
     type: "Optional",
     scope: "Server",
     isSecret: false,
-    defaultVal: "gemini-2.5-flash",
+    defaultVal: "gemini-3.5-flash-lite",
     validator: (v) => {
       const res = optionalSchema.shape.GEMINI_CHAT_MODEL.safeParse(v);
       return { valid: res.success, error: res.success ? undefined : res.error.issues[0]?.message };

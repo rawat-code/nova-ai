@@ -105,7 +105,11 @@ export function PlannerCreatorModal({
       onPlanCreated(generatedSchedule);
       onClose();
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : "Error generating study plan");
+      let msg = err instanceof Error ? err.message : "Error generating study plan";
+      if (msg.includes("429") || msg.toLowerCase().includes("quota exceeded")) {
+        msg = "Gemini API daily request quota reached. Using paced schedule fallback or please try again shortly.";
+      }
+      setErrorMessage(msg);
     } finally {
       setIsGenerating(false);
     }

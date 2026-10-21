@@ -15,7 +15,7 @@ export default function DashboardLayout({
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         <AppHeader />
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 relative">
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-6 md:p-8 relative outline-none">
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>
       </div>

@@ -72,7 +72,8 @@ export function AppSidebar() {
         <button
           type="button"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="rounded-lg border border-white/10 bg-white/[0.04] p-1.5 text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="rounded-lg border border-white/10 bg-white/[0.04] p-1.5 text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? (
