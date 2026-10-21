@@ -4,8 +4,7 @@
 [![GitHub Repository](https://img.shields.io/badge/GitHub-rawat--code%2Fnova--ai-181717?style=for-the-badge&logo=github)](https://github.com/rawat-code/nova-ai)
 [![Next.js](https://img.shields.io/badge/Next.js-16%20%2B%20React%2019-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 
-> 🌐 **Live Production App:** [https://nova-himanshu-rawat.vercel.app](https://nova-himanshu-rawat.vercel.app)  
-> 🔗 **Alternative Mirror:** [https://nova-nine-liard.vercel.app](https://nova-nine-liard.vercel.app)
+> 🌐 **Live Production App:** [https://nova-himanshu-rawat.vercel.app](https://nova-himanshu-rawat.vercel.app)
 
 Nova is an adaptive AI learning companion designed for high school and undergraduate students. It analyzes how students study, detects conceptual weak spots, and personalizes tutoring, notes retrieval, quiz synthesis, spaced repetition, and exam roadmaps.
 
@@ -210,7 +209,6 @@ npx playwright test
 
 ### 3. Active Live Deployment
 - **Production URL**: [https://nova-himanshu-rawat.vercel.app](https://nova-himanshu-rawat.vercel.app)
-- **Alternative Mirror**: [https://nova-nine-liard.vercel.app](https://nova-nine-liard.vercel.app)
 - **Status**: Live and Operational (Continuous Deployment enabled via `main` branch pushes)
 
 ---
